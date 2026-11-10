@@ -1,0 +1,28 @@
+examples/results/
+examples/agents/monitored_A2C/monitor.csv
+examples/agents/variable_episode_A2C/monitor.csv
+*.pyc
+*events.out.tfevents*
+*model_*
+*best_model.zip*
+*monitor.csv*
+*.pdf
+*.prefs
+examples/kpis/
+*testing/boptest.zip
+*testing/project1-boptest*
+
+# 기존 Git 이력 백업
+/.git-history-backup/
+
+# 학습 모델과 결과
+/examples/agents/
+
+
+# Python 임시 파일
+__pycache__/
+*.pyc
+.venv/
+venv/
+Anaconda3-2025.12-2-Linux-x86_64.sh
+examples/test_result_data/simulation(seoul_pi).csv
