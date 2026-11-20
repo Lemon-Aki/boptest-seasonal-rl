@@ -182,7 +182,7 @@ def train_RL(algorithm           = 'SAC',
     #air/seoul-denver/all-sum-win/action1234/reward비율/seed1~5/100k~500k/testno
     log_dir = os.path.join(utilities.get_root_path(), 'examples', 
         #'agents', '{}_{}_{:.0e}_air_seoul_all_34_16-1_{}_300k_5_logdir'.format(algorithm,case,training_timesteps,seed_no))
-        'agents2', '{}_{}_{:.0e}_air_denvor_all_34_29-1_{}_300k_5_logdir'.format(algorithm,case,training_timesteps,seed_no))
+        'agents2', '{}_{}_{:.0e}_air_denvor_all_34_29-1_{}_300k_5_log'.format(algorithm,case,training_timesteps,seed_no))
     log_dir = log_dir.replace('+', '')
     os.makedirs(log_dir, exist_ok=True)
     

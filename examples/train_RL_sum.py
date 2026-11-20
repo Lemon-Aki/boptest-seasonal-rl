@@ -192,7 +192,7 @@ def train_RL(algorithm           = 'SAC',
     # Create a log directory #덴버 7번 테스트 8:1 여름 안된듯;
     #air/seoul-denver/all-sum-win/action1234/reward비율/seed1~5/100k~500k/testno
     log_dir = os.path.join(utilities.get_root_path(), 'examples', 
-        'agents2', '{}_{}_{:.0e}_air_denver_sum_34_16-1_{}_300k_6_logdir'.format(algorithm,case,training_timesteps,seed_no))
+        'agents2', '{}_{}_{:.0e}_air_denver_sum_34_16-1_{}_300k_6_log'.format(algorithm,case,training_timesteps,seed_no))
     log_dir = log_dir.replace('+', '')
     os.makedirs(log_dir, exist_ok=True)
     
