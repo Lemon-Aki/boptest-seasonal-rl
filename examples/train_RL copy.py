@@ -32,13 +32,11 @@ url = 'http://127.0.0.1'
 #random seeds = 265329, 344628, 140915, 46611, 390794
 #random seeds = 209140, 137587, 31216, 98057, 17431
 
-
-day = 7 #start_time_tests 7
+day = 7 #start_time_tests
 
 def train_RL(algorithm           = 'SAC',
              #start_time_tests    = [(23-7)*24*3600, (115-7)*24*3600], 
              ###
-             #seoul
              #start_time_tests = [(24-day)*24*3600,  # peak heat                
              #                    (95-day)*24*3600,   # typical heat                
              #                    (261-day)*24*3600,  # peak cool                
@@ -112,12 +110,7 @@ def train_RL(algorithm           = 'SAC',
         #excluding_periods.append((start_time_test,
         #                          start_time_test+episode_length_test))
         ###
-
-        #exclude_start = start_time_test - 3*24*3600
-        #exclude_end = start_time_test + 4*24*3600
-
-        #excluding_periods.append((exclude_start, exclude_end))
-
+        
         # start_time_test = 기준일 - 7일
         reference_time = start_time_test + day * 24 * 3600
 
@@ -126,7 +119,7 @@ def train_RL(algorithm           = 'SAC',
         exclude_end   = reference_time + 4 * 24 * 3600
 
         excluding_periods.append((exclude_start, exclude_end))
-
+        
 
     # Summer period (from June 21st till September 22nd). 
     # Excluded since no heating during this period (nothing to learn).
@@ -182,17 +175,13 @@ def train_RL(algorithm           = 'SAC',
     #excluding_periods.append((0 * 24 * 3600, 141 * 24 * 3600))
     #excluding_periods.append((272 * 24 * 3600, 365 * 24 * 3600))
 
-    # air_denver_summer: 6월 7일~9월 14일, day 157~256
-    excluding_periods.append((0 * 24 * 3600, 157 * 24 * 3600))
-    excluding_periods.append((257 * 24 * 3600, 365 * 24 * 3600))
-
     # air_seoul_winter_34_16-1 12월 4일~4월 14일 0~104, 337~365
     #excluding_periods.append((104 * 24 * 3600, 337 * 24 * 3600))
 
-    # Create a log directory #덴버 7번 테스트 8:1 여름 안된듯;
+    # Create a log directory
     #air/seoul-denver/all-sum-win/action1234/reward비율/seed1~5/100k~500k/testno
     log_dir = os.path.join(utilities.get_root_path(), 'examples', 
-        'agents', '{}_{}_{:.0e}_air_denver_sum_34_26-1_{}_300k_8_logdir'.format(algorithm,case,training_timesteps,seed_no))
+        'agents2', '{}_{}_{:.0e}_air_denvor_all_34_29-1_{}_300k_5_log'.format(algorithm,case,training_timesteps,seed_no))
     log_dir = log_dir.replace('+', '')
     os.makedirs(log_dir, exist_ok=True)
     
@@ -213,7 +202,7 @@ def train_RL(algorithm           = 'SAC',
             #objective_integrand = kpis['cost_tot']*12.*16. + 100*kpis['tdis_tot']
             ### air
             #objective_integrand = kpis['cost_tot']*12.*16. + 100*kpis['tdis_tot']
-            objective_integrand = kpis['cost_tot']*26 + kpis['tdis_tot']
+            objective_integrand = kpis['cost_tot']*29. + kpis['tdis_tot']
             ###
             
             # Compute reward
@@ -244,6 +233,7 @@ def train_RL(algorithm           = 'SAC',
         #actions = ['con_oveTSetHea_u', 'con_oveTSetCoo_u']
         #actions = ['con_oveTSetHea_u', 'con_oveTSetCoo_u', 'fcu_oveFan_u']
         actions = ['fcu_oveFan_u', 'fcu_oveTSup_u'] #12~40도
+        ''' 261110 observation 수정 co2제거, 연중날짜와 수평면 전일사 추가
         observations=OrderedDict([
                             ('time', (0, 604800)),
                             ('zon_reaTRooAir_y', (280., 310.)),
@@ -255,6 +245,19 @@ def train_RL(algorithm           = 'SAC',
                             ('LowerSetp[1]', (280., 310.)),
                             ('UpperSetp[1]', (280., 310.))
                         ])
+        '''                
+        observations = OrderedDict([
+            ('time', (0, 604800)),
+            ('year_sin', (-1., 1.)),
+            ('year_cos', (-1., 1.)),
+            ('zon_reaTRooAir_y', (280., 310.)),
+            ('TDryBul', (250., 315.)),
+            ('HDirNor', (0., 1000.)),
+            ('HGloHor', (0., 1200.)),
+            ('PriceElectricPowerDynamic', (-0.4, 0.4)),
+            ('LowerSetp[1]', (280., 310.)),
+            ('UpperSetp[1]', (280., 310.))
+        ])
 
         
     if case == 'simple':
@@ -346,10 +349,22 @@ def train_RL(algorithm           = 'SAC',
     
     env = NormalizedObservationWrapper(env)
     env = NormalizedActionWrapper(env)  
+
     
+    #261100 테스트시 monitor.csv 파일 덮어쓰기 방지
     # Modify the environment to include the callback
-    env = Monitor(env=env, filename=os.path.join(log_dir,'monitor.csv'))
-    
+    if mode == 'train':
+        monitor_path = os.path.join(log_dir, 'monitor.csv')
+    else:
+        monitor_path = os.path.join(
+            log_dir, 'evaluation', 'test.monitor.csv'
+        )
+
+    env = Monitor(env=env, filename=monitor_path)
+
+    # Modify the environment to include the callback
+    #env = Monitor(env=env, filename=os.path.join(log_dir,'monitor.csv'))
+   
     if mode == 'train': 
         
         # Define RL agent
@@ -458,6 +473,22 @@ def train_RL(algorithm           = 'SAC',
     
     else:
         raise ValueError('mode should be either train, load, or empty')
+
+    
+    #261100 테스트시 monitor.csv 파일 덮어쓰기 방지
+    if mode == 'train':
+        # 학습 로그 파일 닫기
+        if env.results_writer is not None:
+            env.results_writer.close()
+            env.results_writer = None
+
+        # 정규화 래퍼는 유지하고, 바깥쪽 Monitor만 테스트용으로 교체
+        env = Monitor(
+            env=env.env,
+            filename=os.path.join(
+                log_dir, 'evaluation', 'test.monitor.csv'
+            )
+        )
     
     return env, model, start_time_tests, log_dir
         
@@ -557,20 +588,19 @@ if __name__ == "__main__":
     ###
 
     #123456, 199580, 173827, 101291, 362507
-    for seed_no in [123456,199580, 173827]:
+    for seed_no in [362507]:
 
-        #for chk_point in [105000]:
-        #for chk_point in [100000]:
-            #model_name = f'model_{chk_point}'
-
+        #for chk_point in [80000,100000,120000,140000,160000,180000,200000,220000,240000,260000,280000,300000]:
+        #    model_name = f'model_{chk_point}'
+                
         seed = seed_no
         random.seed(seed)
+
         #env, model, start_time_tests, log_dir = train_RL(algorithm='SAC', mode='train', case='A', training_timesteps=0, render=render)
         #env, model, start_time_tests, log_dir = train_RL(algorithm='SAC', mode='load', case='B', training_timesteps=3e5, render=render)
         #env, model, start_time_tests, log_dir = train_RL(algorithm='SAC', mode='load', case='C', training_timesteps=3e5, render=render)
         env, model, start_time_tests, log_dir = train_RL(algorithm='SAC', mode='train', case='D', training_timesteps=3e5, render=render, model_name=model_name,seed_no=seed_no)
         print(log_dir,model_name)
-        
         #env, model, start_time_tests, log_dir = train_RL(algorithm='A2C', mode='train', case='simple', training_timesteps=1, render=render, expert_traj=os.path.join('trajectories','expert_traj_cont_28.npz'))
         
         warmup_period_test  = 7*24*3600

@@ -74,6 +74,7 @@ def train_RL(algorithm           = 'SAC',
              model_name          = 'last_model',
              ###
              seed_no = 1):
+    
     '''Method to train (or load a pre-trained) A2C agent. Testing periods 
     have to be introduced already here to not use these during training. 
     
@@ -181,7 +182,7 @@ def train_RL(algorithm           = 'SAC',
     #air/seoul-denver/all-sum-win/action1234/reward비율/seed1~5/100k~500k/testno
     log_dir = os.path.join(utilities.get_root_path(), 'examples', 
         #'agents', '{}_{}_{:.0e}_air_seoul_all_34_16-1_{}_300k_5_logdir'.format(algorithm,case,training_timesteps,seed_no))
-        'agents', '{}_{}_{:.0e}_air_denvor_all_34_29-1_{}_300k_5_logdir'.format(algorithm,case,training_timesteps,seed_no))
+        'agents2', '{}_{}_{:.0e}_air_denvor_all_34_29-1_{}_300k_5_logdir'.format(algorithm,case,training_timesteps,seed_no))
     log_dir = log_dir.replace('+', '')
     os.makedirs(log_dir, exist_ok=True)
     
@@ -233,6 +234,7 @@ def train_RL(algorithm           = 'SAC',
         #actions = ['con_oveTSetHea_u', 'con_oveTSetCoo_u']
         #actions = ['con_oveTSetHea_u', 'con_oveTSetCoo_u', 'fcu_oveFan_u']
         actions = ['fcu_oveFan_u', 'fcu_oveTSup_u'] #12~40도
+        ''' 261110 observation 수정 co2제거, 연중날짜와 수평면 전일사 추가
         observations=OrderedDict([
                             ('time', (0, 604800)),
                             ('zon_reaTRooAir_y', (280., 310.)),
@@ -244,6 +246,19 @@ def train_RL(algorithm           = 'SAC',
                             ('LowerSetp[1]', (280., 310.)),
                             ('UpperSetp[1]', (280., 310.))
                         ])
+        '''                
+        observations = OrderedDict([
+            ('time', (0, 604800)),
+            ('year_sin', (-1., 1.)),
+            ('year_cos', (-1., 1.)),
+            ('zon_reaTRooAir_y', (280., 310.)),
+            ('TDryBul', (250., 315.)),
+            ('HDirNor', (0., 1000.)),
+            ('HGloHor', (0., 1200.)),
+            ('PriceElectricPowerDynamic', (-0.4, 0.4)),
+            ('LowerSetp[1]', (280., 310.)),
+            ('UpperSetp[1]', (280., 310.))
+        ])
 
         
     if case == 'simple':
@@ -337,7 +352,18 @@ def train_RL(algorithm           = 'SAC',
     env = NormalizedActionWrapper(env)  
     
     # Modify the environment to include the callback
-    env = Monitor(env=env, filename=os.path.join(log_dir,'monitor.csv'))
+    #env = Monitor(env=env, filename=os.path.join(log_dir,'monitor.csv'))
+    
+    #261100 테스트시 monitor.csv 파일 덮어쓰기 방지
+    # Modify the environment to include the callback
+    if mode == 'train':
+        monitor_path = os.path.join(log_dir, 'monitor.csv')
+    else:
+        monitor_path = os.path.join(
+            log_dir, 'evaluation', 'test.monitor.csv'
+        )
+
+    env = Monitor(env=env, filename=monitor_path)
     
     if mode == 'train': 
         
@@ -447,6 +473,23 @@ def train_RL(algorithm           = 'SAC',
     
     else:
         raise ValueError('mode should be either train, load, or empty')
+
+    
+    #261100 테스트시 monitor.csv 파일 덮어쓰기 방지
+    if mode == 'train':
+        # 학습 로그 파일 닫기
+        if env.results_writer is not None:
+            env.results_writer.close()
+            env.results_writer = None
+
+        # 정규화 래퍼는 유지하고, 바깥쪽 Monitor만 테스트용으로 교체
+        env = Monitor(
+            env=env.env,
+            filename=os.path.join(
+                log_dir, 'evaluation', 'test.monitor.csv'
+            )
+        )
+        
     
     return env, model, start_time_tests, log_dir
         
@@ -546,9 +589,9 @@ if __name__ == "__main__":
     ###
 
     #123456, 199580, 173827, 101291, 362507
-    for seed_no in [123456, 199580, 173827]:
+    for seed_no in [123456, 199580, 173827, 101291, 362507]:
 
-        for chk_point in [160000,165000,170000,180000,190000]:
+        for chk_point in [50000,100000,150000,200000,250000,300000]:
             model_name = f'model_{chk_point}'
                 
             seed = seed_no

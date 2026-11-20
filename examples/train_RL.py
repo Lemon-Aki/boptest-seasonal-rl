@@ -181,7 +181,7 @@ def train_RL(algorithm           = 'SAC',
     # Create a log directory
     #air/seoul-denver/all-sum-win/action1234/reward비율/seed1~5/100k~500k/testno
     log_dir = os.path.join(utilities.get_root_path(), 'examples', 
-        'agents2', '{}_{}_{:.0e}_air_denvor_all_34_26-1_{}_300k_8_log'.format(algorithm,case,training_timesteps,seed_no))
+        'agents2', '{}_{}_{:.0e}_air_denvor_all_34_16-1_{}_300k_6_log'.format(algorithm,case,training_timesteps,seed_no))
     log_dir = log_dir.replace('+', '')
     os.makedirs(log_dir, exist_ok=True)
     
@@ -202,7 +202,7 @@ def train_RL(algorithm           = 'SAC',
             #objective_integrand = kpis['cost_tot']*12.*16. + 100*kpis['tdis_tot']
             ### air
             #objective_integrand = kpis['cost_tot']*12.*16. + 100*kpis['tdis_tot']
-            objective_integrand = kpis['cost_tot']*26. + kpis['tdis_tot']
+            objective_integrand = kpis['cost_tot']*16. + kpis['tdis_tot']
             ###
             
             # Compute reward
@@ -588,7 +588,7 @@ if __name__ == "__main__":
     ###
 
     #123456, 199580, 173827, 101291, 362507
-    for seed_no in [123456, 199580, 173827, 101291, 362507]:
+    for seed_no in [362507]:
 
         #for chk_point in [80000,100000,120000,140000,160000,180000,200000,220000,240000,260000,280000,300000]:
         #    model_name = f'model_{chk_point}'
