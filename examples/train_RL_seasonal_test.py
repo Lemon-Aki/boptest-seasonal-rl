@@ -13,8 +13,8 @@ from examples.test_and_plot import test_agent_air
 
 
 # ===== 실행 설정: 터미널 하나에서 실험 하나와 계절 하나를 평가 =====
-TEST_NO = 5                       # 5, 6, 7, 8
-SEASON = "all"                    # "all", "sum", "win"
+TEST_NO = 7                       # 5, 6, 7, 8
+SEASON = "win"                    # "all", "sum", "win"
 SEEDS = [123456, 199580, 173827, 101291, 362507]
 CHECKPOINTS = {                   # 단위: 학습 스텝. 선택한 계절의 목록만 실행
     "all": [100000, 150000, 200000, 250000, 300000],
